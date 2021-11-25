@@ -27,6 +27,7 @@ import org.jeasy.rules.api.Facts;
 import org.jeasy.rules.api.Rule;
 import org.jeasy.rules.api.Rules;
 import org.jeasy.rules.api.RulesEngine;
+import org.jeasy.rules.core.DefaultRulesEngine;
 import org.jeasy.rules.core.InferenceRulesEngine;
 import org.jeasy.rules.core.RuleBuilder;
 
@@ -38,7 +39,7 @@ public class Launcher {
     public static void main(String[] args) {
         // define facts
         Facts facts = new Facts();
-        facts.put("temperature", 30);
+        facts.put("temperature", 20);
 
         // define rules
         Rule airConditioningRule = new RuleBuilder()
@@ -50,7 +51,7 @@ public class Launcher {
         rules.register(airConditioningRule);
 
         // fire rules on known facts
-        RulesEngine rulesEngine = new InferenceRulesEngine();
+        RulesEngine rulesEngine = new DefaultRulesEngine();
         rulesEngine.fire(rules, facts);
     }
 

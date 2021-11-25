@@ -1,0 +1,11 @@
+name: "alcohol rule SPEL"
+description: "children are not allowed to buy alcohol"
+priority: 2
+condition: "#{ ['person'].age > 18 }"
+actions:
+  - "#{ ['person'].setAdult(true) }"
+  - "System.out.println(\"Shop: Sorry, you are not allowed to buy alcohol\")"
+  - "#{ ['parent'].setInformed(true) }"
+  - "System.out.println(parent);"
+
+
