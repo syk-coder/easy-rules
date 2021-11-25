@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- *  Copyright (c) 2021, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2020, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,7 @@
  */
 package org.jeasy.rules.tutorials.shop;
 
-import org.jeasy.rules.api.Facts;
-import org.jeasy.rules.api.Rule;
-import org.jeasy.rules.api.Rules;
-import org.jeasy.rules.api.RulesEngine;
+import org.jeasy.rules.api.*;
 import org.jeasy.rules.core.DefaultRulesEngine;
 import org.jeasy.rules.jexl.JexlRule;
 import org.jeasy.rules.jexl.JexlRuleFactory;
@@ -42,18 +39,36 @@ import java.util.Date;
 
 public class Launcher {
 
-    public static void main(String[] args) throws Exception {
-        //create a person instance (fact)
+    public static int limit = 1000_000;
+    public static double div = limit;
+
+    public static Facts getFacts() {
         Person tom = new Person("Tom", 19);
         Parent jerry = new Parent(30, false);
         Facts facts = new Facts();
         facts.put("person", tom);
         facts.put("parent", jerry);
+        return facts;
+    }
+
+    public static void printFacts(Facts facts, String tag) {
+        System.out.println("-- Facts (" + tag + ") --");
+        for(Fact<?> f : facts) {
+            System.out.println(f);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        //create a person instance (fact)
+
+        Facts facts = getFacts();
 
         String fileName = args.length != 0 ? args[0] : "easy-rules-tutorials/src/main/java/org/jeasy/rules/tutorials/shop/alcohol-rule.yml";
 
         //create a default rules engine and fire rules on known facts
         RulesEngine rulesEngine = new DefaultRulesEngine();
+
+        System.out.println("---------- MVEL ----------");
 
         // create rules
         MVELRule mvelRule = new MVELRule()
@@ -71,21 +86,30 @@ public class Launcher {
         rules.register(mvelRule);
         rules.register(alcoholRule);
 
-
-        System.out.println("Tom: Hi! can I have some Vodka please?");
+        printFacts(facts, "before");
+        for(int i = 0; i < 100000; ++i) {
+            rulesEngine.fire(rules, facts);
+        }
         long start1 = System.nanoTime();
-        rulesEngine.fire(rules, facts);
+        for(int i = 0; i < limit; ++i) {
+            rulesEngine.fire(rules, facts);
+        }
         long end1 = System.nanoTime();
-        System.out.println("Elapsed Time in nano seconds MVEL: "+ (end1-start1));
+        printFacts(facts, "after");
+        System.out.println("Elapsed Time in nano seconds MVEL: "+ (end1-start1) / div);
         /////////////////////////////////////////////////
+
+        System.out.println("---------- SPEL ----------");
+
+        facts = getFacts();
 
         RulesEngine spelRulesEngine = new DefaultRulesEngine();
         SpELRule spELRule = new SpELRule()
                 .name("age rule using spel")
                 .description("Check if person's age is > 18 and mark the person as adult")
                 .priority(1)
-                .when("#{ ['person'].age > 18 }")
-                .then("#{ ['person'].setAdult(true) }");
+                .when("#{['person'].age > 18}")
+                .then("#{['person'].setAdult(true)}");
 
         SpELRuleFactory spELRuleFactory = new SpELRuleFactory(new YamlRuleDefinitionReader());
         String spelFileName = args.length != 0 ? args[0] : "easy-rules-tutorials/src/main/java/org/jeasy/rules/tutorials/shop/alcohol-rule-spel.yml";
@@ -94,14 +118,25 @@ public class Launcher {
         Rules spelRules = new Rules();
         spelRules.register(spELRule);
         spelRules.register(spelAlcoholRule);
+        printFacts(facts, "before");
+        for(int i = 0; i < 100000; ++i) {
+            spelRulesEngine.fire(spelRules, facts);
+        }
         long start2 = System.nanoTime();
-        spelRulesEngine.fire(spelRules, facts);
+        for(int i = 0; i < limit; ++i) {
+            spelRulesEngine.fire(spelRules, facts);
+        }
         long end2 = System.nanoTime();
-        System.out.println("Elapsed Time in nano seconds: SPEL "+ (end2-start2));
+        printFacts(facts, "after");
+        System.out.println("Elapsed Time in nano seconds: SPEL "+ (end2-start2) / div);
 
         /////////////////////////////////////////////////////////////////////////
 
         RulesEngine jexlRulesEngine = new DefaultRulesEngine();
+
+        System.out.println("---------- JEXL ----------");
+
+        facts = getFacts();
 
         JexlRule jexlRule = new JexlRule()
                 .name("age rule jexl")
@@ -116,11 +151,16 @@ public class Launcher {
         Rules jexlRules = new Rules();
         jexlRules.register(jexlRule);
         jexlRules.register(jexlAlcoholRule);
+        printFacts(facts, "before");
+        for(int i = 0; i < 100000; ++i) {
+            jexlRulesEngine.fire(jexlRules, facts);
+        }
         long start3 = System.nanoTime();
-        jexlRulesEngine.fire(jexlRules, facts);
+        for(int i = 0; i < limit; ++i) {
+            jexlRulesEngine.fire(jexlRules, facts);
+        }
         long end3 = System.nanoTime();
-        System.out.println("Elapsed Time in nano seconds: JEXL "+ (end3-start3));
-
+        printFacts(facts, "after");
+        System.out.println("Elapsed Time in nano seconds: JEXL "+ (end3-start3) / div);
     }
-
 }

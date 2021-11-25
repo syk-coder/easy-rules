@@ -4,8 +4,4 @@ priority: 2
 condition: "person.age > 18"
 actions:
   - "person.setAdult(true);"
-#  - "sout:println(\"Shop: Sorry, you are not allowed to buy alcohol\")"
   - "parent.setInformed(true);"
-#  - "sout:println(parent);"
-
-
